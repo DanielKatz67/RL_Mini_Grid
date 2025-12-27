@@ -1,0 +1,312 @@
+\documentclass[11pt]{article}
+
+% -------------------- Packages --------------------
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{siunitx}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+% -------------------- Title info (edit) --------------------
+\title{\textbf{Mid Project: Tabular Reinforcement Learning in MiniGrid}\\
+\large Monte Carlo, SARSA, and Q-Learning on Two Sparse-Reward Missions}
+\author{
+\textbf{Author 1 Name} (ID: \texttt{XXXXXXXXX}) \\
+\textbf{Author 2 Name} (ID: \texttt{XXXXXXXXX}) \\
+Course: RL2026A \qquad Semester: 2025 \\
+}
+\date{\today}
+
+% -------------------- Convenience macros --------------------
+\newcommand{\envEmpty}{\texttt{RandomEmptyEnv\_10}}
+\newcommand{\envKey}{\texttt{RandomKeyMEnv\_10}}
+\newcommand{\mc}{\textsc{First-Visit Monte Carlo}}
+\newcommand{\sarsa}{\textsc{SARSA(0)}}
+\newcommand{\qlearn}{\textsc{Q-Learning}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This report studies tabular reinforcement learning in two MiniGrid tasks with sparse terminal rewards.
+We compare \mc, \sarsa, and \qlearn under the same exploration scheme (epsilon-greedy with decay), and evaluate convergence, sample efficiency, and policy quality.
+We report training curves (reward/success rate vs.\ episodes), and inference curves (average steps to solve).
+Video rollouts during training and after convergence are included in the submitted notebook.
+\end{abstract}
+
+\section{Environments and MDP Analysis}
+We evaluate two grid worlds (size $10\times 10$ with outer walls) implemented in the notebook:
+
+\paragraph{Environment 1: \envEmpty.}
+An empty room (no internal obstacles) with a randomized agent start position and direction.
+The goal location is sampled from a small set of fixed coordinates.
+The episode ends upon reaching the goal or when the step limit is reached.
+
+\paragraph{Environment 2: \envKey.}
+A two-room layout separated by a vertical wall with a locked door.
+The key is placed on the left side; the agent must pick it up, open the door, and reach a goal on the right side.
+The goal location is sampled from a small set of fixed coordinates.
+The episode ends upon reaching the goal or step limit.
+
+\subsection{Environment Type and Observability}
+\textbf{Episodic:} Yes. Each run is a episodic task that terminates when the goal is reached (\texttt{terminated}) or when the maximum number of steps is exceeded (\texttt{truncated}).
+
+\textbf{MDP:} Yes. MiniGrid is Markovian: the next state and reward depend only on the current environment state (agent position/direction, grid contents such as walls/door/key/goal, and relevant internal flags). 
+With our \texttt{KeyFlatObsWrapper}, the agent observes a global encoding of the entire grid (plus the agent’s position and direction), so the task can be treated as an MDP from the agent’s point of view. 
+
+\textbf{Action space:} Discrete. MiniGrid provides a small finite set of actions (typically 7): turn-left, turn-right, move-forward, pick-up, drop, toggle (e.g., open door), and done.
+
+\textbf{State space:} Discrete and finite (but large). We learn a tabular $Q(s,a)$. In practice, we use a discretized state representation (a state tuple) rather than the full raw grid vector.
+
+\textbf{Observability:}
+\begin{itemize}
+  \item \textbf{Default MiniGrid observation:} partially observable (agent-centric view).
+  \item \textbf{With \texttt{KeyFlatObsWrapper}:} the observation is (almost) fully observable because it encodes the entire grid globally; only inventory-like information (e.g., holding the key) may require adding a small flag if not encoded.
+  \item \textbf{State tuple used by our tabular agents:} $(x_{agent},y_{agent},dir,x_{goal},y_{goal})$.
+  This is sufficient to be Markov in \envEmpty, but for \envKey it should be extended with at least \texttt{hasKey} and \texttt{doorOpen} to avoid aliasing different situations into the same state.
+\end{itemize}
+
+\section{State Representation and Q-table Size}
+\subsection{State definition used in the notebook}
+Our agents map the environment to a discrete tuple:
+\[
+s \;=\; (x_{agent}, y_{agent}, dir, x_{goal}, y_{goal})
+\]
+with $dir\in\{0,1,2,3\}$.
+
+In a $10\times 10$ MiniGrid with outer walls, the agent typically occupies interior coordinates $x,y \in \{1,\dots,8\}$ (8 possible values each), giving $64$ positions.
+
+Let $|\mathcal{A}|$ be the number of discrete actions (MiniGrid default is often $|\mathcal{A}|=7$).
+If the goal is sampled from $G$ possible locations, then the \emph{theoretical} number of states is:
+\[
+|\mathcal{S}| \approx 64 \times 4 \times G
+\]
+and the theoretical Q-table size is $|\mathcal{S}|\times|\mathcal{A}|$.
+In practice, we store the Q-table as a dictionary keyed by visited states, so memory grows with visited states.
+
+\subsection{State size estimates (fill $|\mathcal{A}|$ if different)}
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Environment & Interior positions & Directions & Goal choices $G$ & Theoretical $|\mathcal{S}|$ \\
+\midrule
+\envEmpty & $64$ & $4$ & $3$ & $64\cdot4\cdot3 = 768$ \\
+\envKey   & $64$ & $4$ & $2$ & $64\cdot4\cdot2 = 512$ \\
+\bottomrule
+\end{tabular}
+\caption{Theoretical number of discrete states under the state tuple used in the notebook.}
+\end{table}
+
+\paragraph{Important note for \envKey.}
+The above count ignores key possession and door status. A more Markov state for \envKey should include:
+\[
+s' = (x,y,dir,x_g,y_g,\texttt{hasKey},\texttt{doorOpen})
+\]
+which would multiply $|\mathcal{S}|$ by up to $4$ (two binary flags).
+If key position is included when not carried, the state space becomes larger.
+
+\section{Algorithms}
+We compare three tabular algorithms under epsilon-greedy exploration.
+
+\subsection{\mc}
+\textbf{Type:} On-policy, episodic method.\\
+We generate a complete episode, compute returns $G_t$, and update $Q(s,a)$ (first-visit) toward the observed return.
+Using a constant step-size $\alpha$ yields an incremental Monte Carlo update:
+\[
+Q(s,a) \leftarrow Q(s,a) + \alpha\bigl(G - Q(s,a)\bigr).
+\]
+\textbf{Strengths:} no bootstrap bias; stable in episodic settings.\\
+\textbf{Weaknesses:} high variance; slow on sparse-reward tasks because reward arrives only at episode end.
+
+\subsection{\sarsa}
+\textbf{Type:} On-policy TD control.\\
+Updates bootstrapped target using the next action chosen by the current behavior policy:
+\[
+Q(s,a)\leftarrow Q(s,a)+\alpha\Bigl(r+\gamma Q(s',a')-Q(s,a)\Bigr).
+\]
+\textbf{Strengths:} typically safer/conservative with epsilon-greedy; can learn stable policies in stochastic settings.\\
+\textbf{Weaknesses:} can converge slower than off-policy methods to the optimal greedy policy.
+
+\subsection{\qlearn}
+\textbf{Type:} Off-policy TD control.\\
+Bootstraps toward the greedy next-state value:
+\[
+Q(s,a)\leftarrow Q(s,a)+\alpha\Bigl(r+\gamma \max_{a'}Q(s',a')-Q(s,a)\Bigr).
+\]
+\textbf{Strengths:} often more sample-efficient; learns the greedy policy while exploring.\\
+\textbf{Weaknesses:} can be unstable with function approximation; in tabular settings can still suffer from overestimation in noisy tasks.
+
+\section{Experimental Setup}
+\subsection{Reward and termination}
+Both environments use a \textbf{sparse terminal reward}: $r=1$ only when reaching the goal, otherwise $r=0$.
+Episodes terminate on success or when the maximum step limit is reached.
+
+\subsection{Discount factor $\gamma$}
+We use a high discount factor (e.g., $\gamma=0.99$) because rewards are delayed and reaching the goal may require many steps, especially in \envKey.
+Lower $\gamma$ values can prefer short-term behavior and may hinder learning with sparse rewards.
+
+\subsection{Exploration--Exploitation strategy}
+We use \textbf{epsilon-greedy} exploration:
+\[
+a=\begin{cases}
+\text{random action} & \text{w.p. }\epsilon\\
+\arg\max_a Q(s,a) & \text{w.p. }1-\epsilon
+\end{cases}
+\]
+with multiplicative decay $\epsilon \leftarrow \max(\epsilon_{min}, \epsilon \cdot \epsilon_{decay})$.
+We also discuss alternative strategies in the Discussion section.
+
+\subsection{Hyperparameters and initializations}
+We test:
+\begin{itemize}
+  \item Learning rate $\alpha \in \{\texttt{...}\}$
+  \item Epsilon decay $\epsilon_{decay} \in \{\texttt{...}\}$
+  \item Discount $\gamma \in \{\texttt{...}\}$
+  \item Initialization: zero initialization vs.\ optimistic initialization $Q_0>0$
+\end{itemize}
+(Replace the sets above with the exact grids used in the notebook.)
+
+\section{Results}
+This section must include:
+\begin{itemize}
+  \item \textbf{Convergence graphs:} reward (or success rate) vs.\ episodes for each algorithm.
+  \item \textbf{Steps-to-solve:} number of steps to finish the episode for the most successful run, and average steps curves.
+  \item \textbf{Inference evaluation:} greedy policy performance (average steps and success rate) measured over multiple episodes.
+  \item \textbf{Videos:} middle of training and after convergence (included in notebook).
+\end{itemize}
+
+\subsection{Training curves (reward / success rate)}
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/empty_reward_curve.png}
+  \caption{\envEmpty: reward (or success rate) vs.\ episodes.}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/key_reward_curve.png}
+  \caption{\envKey: reward (or success rate) vs.\ episodes.}
+\end{subfigure}
+\caption{Training convergence curves comparing \mc, \sarsa, and \qlearn.}
+\label{fig:training_rewards}
+\end{figure}
+
+\subsection{Training curves (steps per episode)}
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/empty_steps_curve.png}
+  \caption{\envEmpty: steps/episode vs.\ episodes.}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/key_steps_curve.png}
+  \caption{\envKey: steps/episode vs.\ episodes.}
+\end{subfigure}
+\caption{Training efficiency: average steps per episode during learning.}
+\label{fig:training_steps}
+\end{figure}
+
+\subsection{Inference evaluation (greedy policy)}
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/infer_empty_avg_steps.png}
+  \caption{\envEmpty: inference average steps.}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/infer_key_avg_steps.png}
+  \caption{\envKey: inference average steps.}
+\end{subfigure}
+\caption{Inference stage: greedy policy evaluated over $N$ episodes (report $N$).}
+\label{fig:inference_steps}
+\end{figure}
+
+\subsection{Best parameters cell (required)}
+\textbf{In the notebook}, include a dedicated cell named \texttt{BEST\_PARAMS} that clearly reports:
+\begin{itemize}
+  \item Best hyperparameters per environment and algorithm: $\alpha$, $\gamma$, $\epsilon_0$, $\epsilon_{decay}$, $\epsilon_{min}$
+  \item Best training run summary: episodes to reach consistent success, final success rate, and typical steps to solve
+  \item Best inference summary: average steps and success rate for greedy policy
+\end{itemize}
+In this report, summarize the chosen best setting in Table~\ref{tab:best}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llcccc}
+\toprule
+Env & Algo & $\alpha$ & $\gamma$ & $\epsilon_{decay}$ & Inference avg steps \\
+\midrule
+\envEmpty & \mc     & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
+\envEmpty & \sarsa  & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
+\envEmpty & \qlearn & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
+\addlinespace
+\envKey   & \mc     & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
+\envKey   & \sarsa  & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
+\envKey   & \qlearn & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
+\bottomrule
+\end{tabular}
+\caption{Best hyperparameters and inference performance (fill from notebook).}
+\label{tab:best}
+\end{table}
+
+\section{Discussion}
+\subsection{Advantages and disadvantages on our missions}
+\paragraph{Sparse reward impact.}
+Both tasks provide reward only at success, which makes exploration the main difficulty.
+\mc often learns slower because it must complete successful trajectories to propagate credit information to earlier states.
+TD methods (\sarsa, \qlearn) can propagate value estimates earlier via bootstrapping, typically improving sample efficiency.
+
+\paragraph{On-policy vs off-policy.}
+\sarsa learns values consistent with the behavior policy (epsilon-greedy), which can yield safer behavior during learning.
+\qlearn learns a greedy target while exploring, often converging faster to an optimal greedy policy, but can be more sensitive to exploration settings.
+
+\paragraph{Environment differences.}
+\envEmpty is mostly navigation, so the reduced state $(x,y,dir,x_g,y_g)$ is close to Markov and learning is comparatively easy.
+\envKey requires reasoning about \textit{key possession} and \textit{door state}; if these are excluded from the state representation, learning becomes harder because distinct situations collapse into the same tabular state.
+
+\subsection{Exploration--Exploitation tradeoff}
+We used epsilon-greedy with decay. Alternative or complementary approaches:
+\begin{itemize}
+  \item \textbf{Optimistic initialization:} start $Q(s,a)$ above 0 to encourage exploration early.
+  \item \textbf{Exploring starts:} force random starting states/actions (when allowed) to improve coverage.
+  \item \textbf{Different decay schedules:} linear decay, piecewise decay, or keeping a non-trivial $\epsilon_{min}$.
+  \item \textbf{Count-based exploration (tabular):} add bonuses for rarely visited $(s,a)$.
+\end{itemize}
+
+\subsection{Strengths and limitations of our approach}
+\paragraph{Good points.}
+Tabular methods are simple, interpretable, and fast to run.
+They are a strong baseline for small discrete tasks and allow clear comparisons between MC and TD control.
+
+\paragraph{Bad points.}
+State design is critical; an incomplete state (especially in \envKey) breaks the Markov property and can prevent full convergence.
+Also, tabular approaches do not scale to larger grids or richer observations without function approximation.
+
+\section{Conclusion}
+Summarize which algorithm performed best in each environment and why (based on your plots and inference metrics), and propose improvements (better state, exploration bonuses, or function approximation).
+
+\section*{Reproducibility Checklist}
+\begin{itemize}
+  \item Provide Colab notebook link: \texttt{<paste link>}
+  \item Report random seeds used (if any): \texttt{<paste seeds>}
+  \item Mention training episodes and evaluation episodes: \texttt{<numbers>}
+  \item List best hyperparameters (Table~\ref{tab:best})
+\end{itemize}
+
+\end{document}
