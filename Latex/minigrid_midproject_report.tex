@@ -68,104 +68,169 @@ With our \texttt{KeyFlatObsWrapper}, the agent observes a global encoding of the
 
 \textbf{State space:} Discrete and finite (but large). We learn a tabular $Q(s,a)$. In practice, we use a discretized state representation (a state tuple) rather than the full raw grid vector.
 
-\textbf{Observability:}
-\begin{itemize}
-  \item \textbf{Default MiniGrid observation:} partially observable (agent-centric view).
-  \item \textbf{With \texttt{KeyFlatObsWrapper}:} the observation is (almost) fully observable because it encodes the entire grid globally; only inventory-like information (e.g., holding the key) may require adding a small flag if not encoded.
-  \item \textbf{State tuple used by our tabular agents:} $(x_{agent},y_{agent},dir,x_{goal},y_{goal})$.
-  This is sufficient to be Markov in \envEmpty, but for \envKey it should be extended with at least \texttt{hasKey} and \texttt{doorOpen} to avoid aliasing different situations into the same state.
-\end{itemize}
+\textbf{Observability:} The environment becomes \emph{fully observable}. The wrapper exposes a global, flattened representation of the grid, and we additionally extract all relevant latent variables 
+(agent position and direction, goal position, key position, door position, whether the agent is carrying the key, and whether the door is open).
 
 \section{State Representation and Q-table Size}
+
 \subsection{State definition used in the notebook}
-Our agents map the environment to a discrete tuple:
+Our tabular agents map each observation to a discrete state tuple extracted from the unwrapped MiniGrid environment:
 \[
-s \;=\; (x_{agent}, y_{agent}, dir, x_{goal}, y_{goal})
+s = (x_a, y_a, d_a, x_g, y_g, x_k, y_k, x_d, y_d, \texttt{hasKey}, \texttt{doorOpen})
 \]
-with $dir\in\{0,1,2,3\}$.
 
-In a $10\times 10$ MiniGrid with outer walls, the agent typically occupies interior coordinates $x,y \in \{1,\dots,8\}$ (8 possible values each), giving $64$ positions.
+Each component of the state tuple has the following meaning:
+\begin{itemize}
+  \item $x_a, y_a$ – the agent's grid coordinates.
+  \item $d_a$ – the agent's orientation (direction), with
+        $d_a \in \{0,1,2,3\}$ corresponding to the four cardinal directions.
+  \item $x_g, y_g$ – the goal position coordinates.
+  \item $x_k, y_k$ – the key position coordinates (or $(-1,-1)$ if no key exists or the key is not present).
+  \item $x_d, y_d$ – the door position coordinates (or $(-1,-1)$ if no door exists).
+  \item $\texttt{hasKey}$ – a binary flag indicating whether the agent is currently carrying the key.
+  \item $\texttt{doorOpen}$ – a binary flag indicating whether the door is open.
+\end{itemize}
 
-Let $|\mathcal{A}|$ be the number of discrete actions (MiniGrid default is often $|\mathcal{A}|=7$).
-If the goal is sampled from $G$ possible locations, then the \emph{theoretical} number of states is:
+This representation is fully observable and satisfies the Markov property.
+
+\paragraph{Environment-dependent components.}
+Not all state components contribute to the effective state-space complexity:
+\begin{itemize}
+  \item In \envEmpty\ (RandomEmptyEnv10), there is no key or door. The variables $(x_k,y_k)$ and $(x_d,y_d)$ are fixed sentinel values $(-1,-1)$, and $\texttt{hasKey}=\texttt{doorOpen}=0$.  
+  These components are constant and therefore do \emph{not} increase the number of distinct states.
+  
+  \item In \envKey, all components are active and affect the transition dynamics.
+\end{itemize}
+
+\subsection{State space size estimation}
+
+We consider a $10\times10$ MiniGrid with outer walls, so the agent occupies interior coordinates
+$x,y \in \{1,\dots,8\}$, yielding $64$ positions, and $4$ orientations.
+
+\paragraph{\envEmpty.}
+The goal is sampled from $G=3$ possible positions. Since all other variables are constant:
 \[
-|\mathcal{S}| \approx 64 \times 4 \times G
+|\mathcal{S}_{\text{Empty}}|
+=
+64 \times 4 \times 3
+=
+768
 \]
-and the theoretical Q-table size is $|\mathcal{S}|\times|\mathcal{A}|$.
-In practice, we store the Q-table as a dictionary keyed by visited states, so memory grows with visited states.
 
-\subsection{State size estimates (fill $|\mathcal{A}|$ if different)}
+\paragraph{\envKey.}
+In the key–door environment:
+\begin{itemize}
+  \item the goal has $G=2$ possible locations,
+  \item the door is always located in column $3$ $\Rightarrow 8$ possible positions,
+  \item the key is located on the left side of the wall (columns $1$ and $2$), giving $2 \times 8 = 16$ possible positions,
+  \item $\texttt{hasKey} \in \{0,1\}$,
+  \item $\texttt{doorOpen} \in \{0,1\}$.
+\end{itemize}
+
+The resulting theoretical state-space size is:
+\[
+|\mathcal{S}_{\text{Key}}|
+=
+64 \times 4 \times 2 \times 8 \times 16 \times 2 \times 2
+=
+262{,}144
+\]
+
+\subsection{Summary of theoretical state sizes}
+
 \begin{table}[H]
 \centering
 \begin{tabular}{lcccc}
 \toprule
-Environment & Interior positions & Directions & Goal choices $G$ & Theoretical $|\mathcal{S}|$ \\
+Environment & Agent pos. & Orientation & Additional factors & $|\mathcal{S}|$ \\
 \midrule
-\envEmpty & $64$ & $4$ & $3$ & $64\cdot4\cdot3 = 768$ \\
-\envKey   & $64$ & $4$ & $2$ & $64\cdot4\cdot2 = 512$ \\
+\envEmpty & $64$ & $4$ & $3$ goal positions & $768$ \\
+\envKey   & $64$ & $4$ & $2 \cdot 8 \cdot 16 \cdot 2 \cdot 2$ & $262{,}144$ \\
 \bottomrule
 \end{tabular}
-\caption{Theoretical number of discrete states under the state tuple used in the notebook.}
+\caption{Theoretical number of discrete states under the full state representation used by the tabular agents.}
 \end{table}
 
-\paragraph{Important note for \envKey.}
-The above count ignores key possession and door status. A more Markov state for \envKey should include:
-\[
-s' = (x,y,dir,x_g,y_g,\texttt{hasKey},\texttt{doorOpen})
-\]
-which would multiply $|\mathcal{S}|$ by up to $4$ (two binary flags).
-If key position is included when not carried, the state space becomes larger.
+Let $|\mathcal{A}|$ be the number of discrete actions :  envEmpty $|\mathcal{A}|=3$, envKey $|\mathcal{A}|=7$.
 
+\paragraph{Q-table size.}
+The Q-table size is $|\mathcal{S}|\times|\mathcal{A}|$.  
+In practice, Q-values are stored in a dictionary indexed by visited states, so memory usage scales with the number of states actually encountered during training rather than the full theoretical state space.
 \section{Algorithms}
-We compare three tabular algorithms under epsilon-greedy exploration.
+We compare three tabular reinforcement learning algorithms under the same
+$\epsilon$-greedy exploration strategy.  
+All methods operate on the discrete, fully observable state representation described in Section~X and are evaluated on two MiniGrid missions with sparse terminal rewards.
 
 \subsection{\mc}
-\textbf{Type:} On-policy, episodic method.\\
-We generate a complete episode, compute returns $G_t$, and update $Q(s,a)$ (first-visit) toward the observed return.
-Using a constant step-size $\alpha$ yields an incremental Monte Carlo update:
+\textbf{Type:} On-policy, episodic Monte Carlo control.
+
+Monte Carlo learning updates action values only after observing a complete episode.  
+For each first visit of a state–action pair $(s,a)$, the return $G_t$ is computed and used to update:
 \[
-Q(s,a) \leftarrow Q(s,a) + \alpha\bigl(G - Q(s,a)\bigr).
+Q(s,a) \leftarrow Q(s,a) + \alpha\bigl(G_t - Q(s,a)\bigr).
 \]
-\textbf{Strengths:} no bootstrap bias; stable in episodic settings.\\
-\textbf{Weaknesses:} high variance; slow on sparse-reward tasks because reward arrives only at episode end.
+
+\textbf{Advantages in our MiniGrid missions:}
+\begin{itemize}
+  \item No bootstrapping bias: updates rely solely on actual observed returns.
+  \item Conceptually simple and stable in strictly episodic environments.
+\end{itemize}
+
+\textbf{Disadvantages in our MiniGrid missions:}
+\begin{itemize}
+  \item Very high variance due to sparse terminal rewards.
+  \item Credit assignment is difficult: all actions in a long episode receive the same delayed reward.
+  \item Particularly slow in \envKey, where episodes are long and successful trajectories are rare early in training.
+\end{itemize}
+
+As a result, Monte Carlo learning converges slowly and requires many episodes to propagate useful information back to early states.
 
 \subsection{\sarsa}
-\textbf{Type:} On-policy TD control.\\
-Updates bootstrapped target using the next action chosen by the current behavior policy:
+\textbf{Type:} On-policy temporal-difference (TD) control.
+
+SARSA performs incremental updates at every step using the next action selected by the current behavior policy:
 \[
 Q(s,a)\leftarrow Q(s,a)+\alpha\Bigl(r+\gamma Q(s',a')-Q(s,a)\Bigr).
 \]
-\textbf{Strengths:} typically safer/conservative with epsilon-greedy; can learn stable policies in stochastic settings.\\
-\textbf{Weaknesses:} can converge slower than off-policy methods to the optimal greedy policy.
+
+\textbf{Advantages in our MiniGrid missions:}
+\begin{itemize}
+  \item Lower variance than Monte Carlo due to step-wise bootstrapping.
+  \item Learns policies that account for exploration, leading to more conservative behavior.
+  \item More stable learning than MC in sparse-reward settings.
+\end{itemize}
+
+\textbf{Disadvantages in our MiniGrid missions:}
+\begin{itemize}
+  \item Convergence to the optimal greedy policy can be slower than off-policy methods.
+  \item Continued exploration (nonzero $\epsilon$) affects the learned value function.
+\end{itemize}
+
+In \envEmpty, SARSA learns efficiently due to the smaller state space.  
+In \envKey, its conservative updates help stability but slow down optimal path learning.
 
 \subsection{\qlearn}
-\textbf{Type:} Off-policy TD control.\\
-Bootstraps toward the greedy next-state value:
+\textbf{Type:} Off-policy temporal-difference (TD) control.
+
+Q-learning updates toward the greedy value of the next state, independent of the behavior policy:
 \[
 Q(s,a)\leftarrow Q(s,a)+\alpha\Bigl(r+\gamma \max_{a'}Q(s',a')-Q(s,a)\Bigr).
 \]
-\textbf{Strengths:} often more sample-efficient; learns the greedy policy while exploring.\\
-\textbf{Weaknesses:} can be unstable with function approximation; in tabular settings can still suffer from overestimation in noisy tasks.
 
-\section{Experimental Setup}
-\subsection{Reward and termination}
-Both environments use a \textbf{sparse terminal reward}: $r=1$ only when reaching the goal, otherwise $r=0$.
-Episodes terminate on success or when the maximum step limit is reached.
+\textbf{Advantages in our MiniGrid missions:}
+\begin{itemize}
+  \item More sample-efficient than MC and SARSA.
+  \item Faster propagation of terminal rewards through the state space.
+  \item Performs well in large discrete state spaces such as \envKey.
+\end{itemize}
 
-\subsection{Discount factor $\gamma$}
-We use a high discount factor (e.g., $\gamma=0.99$) because rewards are delayed and reaching the goal may require many steps, especially in \envKey.
-Lower $\gamma$ values can prefer short-term behavior and may hinder learning with sparse rewards.
+\textbf{Disadvantages in our MiniGrid missions:}
+\begin{itemize}
+  \item Can overestimate action values due to the max operator.
+  \item Sensitive to learning rate and exploration schedule.
+\end{itemize}
 
-\subsection{Exploration--Exploitation strategy}
-We use \textbf{epsilon-greedy} exploration:
-\[
-a=\begin{cases}
-\text{random action} & \text{w.p. }\epsilon\\
-\arg\max_a Q(s,a) & \text{w.p. }1-\epsilon
-\end{cases}
-\]
-with multiplicative decay $\epsilon \leftarrow \max(\epsilon_{min}, \epsilon \cdot \epsilon_{decay})$.
-We also discuss alternative strategies in the Discussion section.
+Overall, Q-learning shows the fastest convergence in both environments, especially in the key–door task, where efficient reward propagation is crucial.
 
 \subsection{Hyperparameters and initializations}
 We test:

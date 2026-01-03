@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.12.13)  27 DEC 2025 13:09
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.12.13)  3 JAN 2026 18:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -517,48 +517,38 @@ Overfull \hbox (12.79654pt too wide) in paragraph at lines 41--45
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10.95> not available
 (Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 51.
 
+Overfull \hbox (7.52364pt too wide) in paragraph at lines 62--63
+\OT1/cmr/bx/n/10.95 Episodic: \OT1/cmr/m/n/10.95 Yes. Each run is a episodic ta
+sk that ter-mi-nates when the goal is reached (\OT1/cmtt/m/n/10.95 terminated\O
+T1/cmr/m/n/10.95 )
+ []
+
+
 
 [1
 
 {/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 98.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 98.
-
-
-LaTeX Font Warning: Font shape `OT1/cmr/bx/sc' undefined
-(Font)              using `OT1/cmr/bx/n' instead on input line 123.
-
-
-
 [2{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc
 }]
-Overfull \hbox (0.2066pt too wide) in paragraph at lines 138--141
-\OT1/cmr/bx/n/10.95 Strengths: \OT1/cmr/m/n/10.95 typ-i-cally safer/conservativ
-e with epsilon-greedy; can learn sta-ble poli-cies in stochas-
- []
 
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 156.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\gamma' on input line 156.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 156.
+LaTeX Font Warning: Font shape `OT1/cmr/bx/sc' undefined
+(Font)              using `OT1/cmr/bx/n' instead on input line 164.
 
 
 
 [3]
+Overfull \hbox (46.46269pt too wide) in paragraph at lines 209--211
+[]\OT1/cmr/m/n/10.95 In \OT1/cmtt/m/n/10.95 RandomEmptyEnv[]10\OT1/cmr/m/n/10.9
+5 , SARSA learns ef-fi-ciently due to the smaller state space. In \OT1/cmtt/m/n
+/10.95 RandomKeyMEnv[]10\OT1/cmr/m/n/10.95 ,
+ []
 
-LaTeX Warning: File `figs/empty_reward_curve.png' not found on input line 195.
+
+
+[4]
+
+LaTeX Warning: File `figs/empty_reward_curve.png' not found on input line 259.
 
 
 ! Package pdftex.def Error: File `figs/empty_reward_curve.png' not found: using
@@ -568,11 +558,11 @@ See the pdftex.def package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.195 ...=\textwidth]{figs/empty_reward_curve.png}
+l.259 ...=\textwidth]{figs/empty_reward_curve.png}
                                                   
 ? 
 
-LaTeX Warning: File `figs/key_reward_curve.png' not found on input line 200.
+LaTeX Warning: File `figs/key_reward_curve.png' not found on input line 264.
 
 
 ! Package pdftex.def Error: File `figs/key_reward_curve.png' not found: using d
@@ -582,11 +572,11 @@ See the pdftex.def package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.200 ...th=\textwidth]{figs/key_reward_curve.png}
+l.264 ...th=\textwidth]{figs/key_reward_curve.png}
                                                   
 ? 
 
-LaTeX Warning: File `figs/empty_steps_curve.png' not found on input line 212.
+LaTeX Warning: File `figs/empty_steps_curve.png' not found on input line 276.
 
 
 ! Package pdftex.def Error: File `figs/empty_steps_curve.png' not found: using 
@@ -596,17 +586,17 @@ See the pdftex.def package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.212 ...h=\textwidth]{figs/empty_steps_curve.png}
+l.276 ...h=\textwidth]{figs/empty_steps_curve.png}
                                                   
 ? 
 
-Underfull \hbox (badness 10000) in paragraph at lines 213--213
+Underfull \hbox (badness 10000) in paragraph at lines 277--277
 []\OT1/cmr/m/n/10 (a) |\OT1/cmtt/m/n/10 RandomEmptyEnv[]10\OT1/cmr/m/n/10 : ste
 ps/episode vs.
  []
 
 
-LaTeX Warning: File `figs/key_steps_curve.png' not found on input line 217.
+LaTeX Warning: File `figs/key_steps_curve.png' not found on input line 281.
 
 
 ! Package pdftex.def Error: File `figs/key_steps_curve.png' not found: using dr
@@ -616,15 +606,15 @@ See the pdftex.def package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.217 ...dth=\textwidth]{figs/key_steps_curve.png}
+l.281 ...dth=\textwidth]{figs/key_steps_curve.png}
                                                   
 ? 
 
 
-[4]
+[5]
 
-LaTeX Warning: File `figs/infer_empty_avg_steps.png' not found on input line 22
-9.
+LaTeX Warning: File `figs/infer_empty_avg_steps.png' not found on input line 29
+3.
 
 
 ! Package pdftex.def Error: File `figs/infer_empty_avg_steps.png' not found: us
@@ -634,11 +624,11 @@ See the pdftex.def package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.229 ...extwidth]{figs/infer_empty_avg_steps.png}
+l.293 ...extwidth]{figs/infer_empty_avg_steps.png}
                                                   
 ? 
 
-LaTeX Warning: File `figs/infer_key_avg_steps.png' not found on input line 234.
+LaTeX Warning: File `figs/infer_key_avg_steps.png' not found on input line 298.
 
 
 
@@ -649,25 +639,25 @@ See the pdftex.def package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.234 ...\textwidth]{figs/infer_key_avg_steps.png}
+l.298 ...\textwidth]{figs/infer_key_avg_steps.png}
                                                   
 ? 
 
 
-[5]
-Overfull \hbox (6.58102pt too wide) in paragraph at lines 252--265
+[6]
+Overfull \hbox (6.58102pt too wide) in paragraph at lines 316--329
  [][] 
  []
 
 
-Overfull \hbox (5.79948pt too wide) in paragraph at lines 277--279
+Overfull \hbox (5.79948pt too wide) in paragraph at lines 341--343
  []\OT1/cmr/bx/n/10.95 On-policy vs off-policy.[] \OT1/cmr/m/sc/10.95 SARSA(0)\
 OT1/cmr/m/n/10.95 learns val-ues con-sis-tent with the be-hav-ior pol-icy (epsi
 lon-
  []
 
 
-Overfull \hbox (5.76648pt too wide) in paragraph at lines 281--283
+Overfull \hbox (5.76648pt too wide) in paragraph at lines 345--347
 \OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 x; y; dir; x[]; y[]\OT1/cmr/m/n/10.95 )
 $ is close to Markov and learn-ing is com-par-a-tively easy. \OT1/cmtt/m/n/10.9
 5 RandomKeyMEnv[]10\OT1/cmr/m/n/10.95 requires
@@ -675,9 +665,9 @@ $ is close to Markov and learn-ing is com-par-a-tively easy. \OT1/cmtt/m/n/10.9
 
 
 
-[6]
+[7]
 
-[7] (./minigrid_midproject_report.aux)
+[8] (./minigrid_midproject_report.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
@@ -693,38 +683,57 @@ ed.
 (rerunfilecheck)                or use package `bookmark'.
 
 Package rerunfilecheck Info: Checksums for `minigrid_midproject_report.out':
-(rerunfilecheck)             Before: 92E81A12D5EC83F17FB1023B0E7EED26;4845
-(rerunfilecheck)             After:  14AAA051C01E31619F0E38463467785D;4708.
+(rerunfilecheck)             Before: 9CDD426A002F1A979C8D621DAA8CDB77;4848
+(rerunfilecheck)             After:  140FD6AD547D8834A1B7F01A75968DC2;4164.
  ) 
 Here is how much of TeX's memory you used:
- 15962 strings out of 473190
- 315115 string characters out of 5715799
- 673084 words of memory out of 5000000
- 39016 multiletter control sequences out of 15000+600000
+ 15967 strings out of 473190
+ 315144 string characters out of 5715799
+ 673086 words of memory out of 5000000
+ 39015 multiletter control sequences out of 15000+600000
  569294 words of font info for 76 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,10n,79p,439b,1087s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
-></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
-</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb>
-</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
-/usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></
-usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></u
-sr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr
-/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/l
-ocal/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loc
-al/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/
-texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/t
-exlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/tex
-live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texli
-ve/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texliv
-e/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive
-/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/local/texlive/
-2025/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
-Output written on minigrid_midproject_report.pdf (7 pages, 219977 bytes).
+ 75i,10n,79p,359b,1093s stack positions out of 10000i,1000n,20000p,200000b,200000s
+
+pdfTeX warning (dest): name{section.7} has been referenced but does not exist, 
+replaced by a fixed one
+
+
+pdfTeX warning (dest): name{subsection.6.3} has been referenced but does not ex
+ist, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{subsection.6.2} has been referenced but does not ex
+ist, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{subsection.6.1} has been referenced but does not ex
+ist, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{subsection.5.4} has been referenced but does not ex
+ist, replaced by a fixed one
+
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><
+/usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></
+usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></
+usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></u
+sr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></us
+r/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/
+local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/lo
+cal/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loca
+l/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/t
+exlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/te
+xlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texl
+ive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texliv
+e/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive
+/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/
+2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/local/texlive/2
+025/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
+Output written on minigrid_midproject_report.pdf (8 pages, 215745 bytes).
 PDF statistics:
- 250 PDF objects out of 1000 (max. 8388607)
- 204 compressed objects within 3 object streams
- 46 named destinations out of 1000 (max. 500000)
- 193 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 258 PDF objects out of 1000 (max. 8388607)
+ 213 compressed objects within 3 object streams
+ 52 named destinations out of 1000 (max. 500000)
+ 201 words of extra memory for PDF output out of 10000 (max. 10000000)
 
