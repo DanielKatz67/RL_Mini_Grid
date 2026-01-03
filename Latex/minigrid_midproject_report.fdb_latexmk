@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1767457499.7326 "minigrid_midproject_report.tex" "minigrid_midproject_report.pdf" "minigrid_midproject_report" 1767457502.25223 2
+["pdflatex"] 1767470181.4044 "minigrid_midproject_report.tex" "minigrid_midproject_report.pdf" "minigrid_midproject_report" 1767470184.12189 2
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/jknappen/ec/tcrm1095.tfm" 1136768653 1536 02c06700a42be0f5a28664c7273f82e7 ""
@@ -112,15 +112,17 @@
   "/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1765618303 5467155 19efa205003f9ecad95fbbaa6ff24da1 ""
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1765618234 3345739 ac00a566983a95009e9da7247a78584f ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
-  "figs/empty_reward_curve.png" 0 -1 0 ""
-  "figs/empty_steps_curve.png" 0 -1 0 ""
+  "figs/empty_best_steps_all.png" 1767470147.90169 94606 3f838d8c94e3867942adba7a371505c4 ""
+  "figs/empty_mc_best_reward.png" 1767459581.92233 81992 456be32db1110749e52e6bed5f68b259 ""
+  "figs/empty_q_best_reward.png" 1767459621.40683 78865 57d14b3ed55f929c26c7d0f3121b1abb ""
+  "figs/empty_sarsa_best_reward.png" 1767459604.30746 87402 1a62e8ccf035c6af0c6fa56795b12b9d ""
   "figs/infer_empty_avg_steps.png" 0 -1 0 ""
   "figs/infer_key_avg_steps.png" 0 -1 0 ""
-  "figs/key_reward_curve.png" 0 -1 0 ""
-  "figs/key_steps_curve.png" 0 -1 0 ""
-  "minigrid_midproject_report.aux" 1767457502.15924 5760 cfdae934ed2aa64cb5d6cb881ba014dc "pdflatex"
-  "minigrid_midproject_report.out" 1767457502.1603 4164 140fd6ad547d8834a1b7f01a75968dc2 "pdflatex"
-  "minigrid_midproject_report.tex" 1767457497.8807 17244 08f78c134cbf4d9ddb9435fd2c53913a ""
+  "figs/key_best_reward_all.png" 0 -1 0 ""
+  "figs/key_best_steps_all.png" 0 -1 0 ""
+  "minigrid_midproject_report.aux" 1767470184.03587 7597 c6a369357f28032ccc619a452c26aa31 "pdflatex"
+  "minigrid_midproject_report.out" 1767470184.03684 4994 f75b48c006debc99d5fa61ab7b01b0ea "pdflatex"
+  "minigrid_midproject_report.tex" 1767470178.49245 17802 c7b0872761b33c8b3ea469fb7da60234 ""
   (generated)
   "minigrid_midproject_report.aux"
   "minigrid_midproject_report.log"

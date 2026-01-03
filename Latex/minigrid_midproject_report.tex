@@ -232,84 +232,119 @@ Q(s,a)\leftarrow Q(s,a)+\alpha\Bigl(r+\gamma \max_{a'}Q(s',a')-Q(s,a)\Bigr).
 
 Overall, Q-learning shows the fastest convergence in both environments, especially in the key–door task, where efficient reward propagation is crucial.
 
+% =========================
+% Hyperparameters
+% =========================
 \subsection{Hyperparameters and initializations}
-We test:
-\begin{itemize}
-  \item Learning rate $\alpha \in \{\texttt{...}\}$
-  \item Epsilon decay $\epsilon_{decay} \in \{\texttt{...}\}$
-  \item Discount $\gamma \in \{\texttt{...}\}$
-  \item Initialization: zero initialization vs.\ optimistic initialization $Q_0>0$
-\end{itemize}
-(Replace the sets above with the exact grids used in the notebook.)
+We perform a grid search over the following hyperparameters:
 
+\begin{itemize}
+  \item Learning rate: $\alpha \in \{0.1, 0.2\}$
+  \item Discount factor: $\gamma \in \{0.9, 0.99\}$
+  \item Epsilon decay: $\epsilon_{decay} \in \{0.999, 0.9995\}$
+  \item Initial exploration: $\epsilon_0 = 1.0$, $\epsilon_{min} = 0.05$
+  \item Initialization: zero initialization vs.\ optimistic initialization ($Q_0 > 0$)
+\end{itemize}
+
+For each environment and algorithm, we report results using the best-performing hyperparameter configuration.
+
+% =========================
+% Results
+% =========================
 \section{Results}
-This section must include:
-\begin{itemize}
-  \item \textbf{Convergence graphs:} reward (or success rate) vs.\ episodes for each algorithm.
-  \item \textbf{Steps-to-solve:} number of steps to finish the episode for the most successful run, and average steps curves.
-  \item \textbf{Inference evaluation:} greedy policy performance (average steps and success rate) measured over multiple episodes.
-  \item \textbf{Videos:} middle of training and after convergence (included in notebook).
-\end{itemize}
+We report results separately for each environment.  
+All plots correspond to the best hyperparameter configuration found for each algorithm.
 
-\subsection{Training curves (reward / success rate)}
+% -------------------------
+% Empty Environment
+% -------------------------
+\subsection{\envEmpty\ (RandomEmptyEnv10)}
+
+\subsubsection{Training performance}
+Figure~\ref{fig:empty_reward} presents the smoothed training reward (success rate) for each algorithm in \envEmpty, using the best hyperparameter configuration per method.
+
 \begin{figure}[H]
 \centering
 \begin{subfigure}{0.49\textwidth}
   \centering
-  \includegraphics[width=\textwidth]{figs/empty_reward_curve.png}
-  \caption{\envEmpty: reward (or success rate) vs.\ episodes.}
+  \includegraphics[width=\textwidth]{figs/empty_mc_best_reward.png}
+  \caption{\mc: training reward vs.\ episodes.}
 \end{subfigure}
+\hfill
 \begin{subfigure}{0.49\textwidth}
   \centering
-  \includegraphics[width=\textwidth]{figs/key_reward_curve.png}
-  \caption{\envKey: reward (or success rate) vs.\ episodes.}
+  \includegraphics[width=\textwidth]{figs/empty_sarsa_best_reward.png}
+  \caption{\sarsa: training reward vs.\ episodes.}
 \end{subfigure}
-\caption{Training convergence curves comparing \mc, \sarsa, and \qlearn.}
-\label{fig:training_rewards}
+
+\vspace{0.5em}
+
+\begin{subfigure}{0.49\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/empty_q_best_reward.png}
+  \caption{\qlearn: training reward vs.\ episodes.}
+\end{subfigure}
+
+\caption{\envEmpty: smoothed training reward (success rate) under best hyperparameters for each algorithm.}
+\label{fig:empty_reward}
 \end{figure}
 
-\subsection{Training curves (steps per episode)}
+All three algorithms converge to optimal performance.
+Q-learning reaches stable success in fewer episodes, followed by SARSA, while Monte Carlo exhibits higher variance and slower convergence.
+
+
+\subsubsection{Training efficiency (steps per episode)}
 \begin{figure}[H]
 \centering
-\begin{subfigure}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{figs/empty_steps_curve.png}
-  \caption{\envEmpty: steps/episode vs.\ episodes.}
-\end{subfigure}
-\begin{subfigure}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{figs/key_steps_curve.png}
-  \caption{\envKey: steps/episode vs.\ episodes.}
-\end{subfigure}
-\caption{Training efficiency: average steps per episode during learning.}
-\label{fig:training_steps}
+\includegraphics[width=0.85\textwidth]{figs/empty_best_steps_all.png}
+\caption{\envEmpty: average steps per episode during training.}
+\label{fig:empty_steps}
 \end{figure}
 
-\subsection{Inference evaluation (greedy policy)}
+\subsubsection{Inference evaluation}
 \begin{figure}[H]
 \centering
-\begin{subfigure}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{figs/infer_empty_avg_steps.png}
-  \caption{\envEmpty: inference average steps.}
-\end{subfigure}
-\begin{subfigure}{0.49\textwidth}
-  \centering
-  \includegraphics[width=\textwidth]{figs/infer_key_avg_steps.png}
-  \caption{\envKey: inference average steps.}
-\end{subfigure}
-\caption{Inference stage: greedy policy evaluated over $N$ episodes (report $N$).}
-\label{fig:inference_steps}
+\includegraphics[width=0.85\textwidth]{figs/infer_empty_avg_steps.png}
+\caption{\envEmpty: average steps per episode during inference (greedy policy).}
+\label{fig:empty_infer}
 \end{figure}
 
-\subsection{Best parameters cell (required)}
-\textbf{In the notebook}, include a dedicated cell named \texttt{BEST\_PARAMS} that clearly reports:
-\begin{itemize}
-  \item Best hyperparameters per environment and algorithm: $\alpha$, $\gamma$, $\epsilon_0$, $\epsilon_{decay}$, $\epsilon_{min}$
-  \item Best training run summary: episodes to reach consistent success, final success rate, and typical steps to solve
-  \item Best inference summary: average steps and success rate for greedy policy
-\end{itemize}
-In this report, summarize the chosen best setting in Table~\ref{tab:best}.
+% -------------------------
+% Key Environment
+% -------------------------
+\subsection{\envKey}
+
+\subsubsection{Training performance}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figs/key_best_reward_all.png}
+\caption{\envKey: training reward (success rate) vs.\ episodes for \mc, \sarsa, and \qlearn.}
+\label{fig:key_reward}
+\end{figure}
+
+Compared to \envEmpty, convergence is slower due to the larger state space and delayed rewards.
+Q-learning shows the strongest advantage in this environment.
+
+\subsubsection{Training efficiency (steps per episode)}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figs/key_best_steps_all.png}
+\caption{\envKey: average steps per episode during training.}
+\label{fig:key_steps}
+\end{figure}
+
+\subsubsection{Inference evaluation}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figs/infer_key_avg_steps.png}
+\caption{\envKey: average steps per episode during inference (greedy policy).}
+\label{fig:key_infer}
+\end{figure}
+
+% -------------------------
+% Best Parameters Summary
+% -------------------------
+\subsection{Best hyperparameter summary}
 
 \begin{table}[H]
 \centering
@@ -317,18 +352,19 @@ In this report, summarize the chosen best setting in Table~\ref{tab:best}.
 \toprule
 Env & Algo & $\alpha$ & $\gamma$ & $\epsilon_{decay}$ & Inference avg steps \\
 \midrule
-\envEmpty & \mc     & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
-\envEmpty & \sarsa  & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
-\envEmpty & \qlearn & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
+\envEmpty & \mc     & 0.1 & 0.9  & 0.999  & \texttt{...} \\
+\envEmpty & \sarsa  & 0.2 & 0.9  & 0.999  & \texttt{...} \\
+\envEmpty & \qlearn & 0.1 & 0.9  & 0.999  & \texttt{...} \\
 \addlinespace
 \envKey   & \mc     & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
 \envKey   & \sarsa  & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
 \envKey   & \qlearn & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
 \bottomrule
 \end{tabular}
-\caption{Best hyperparameters and inference performance (fill from notebook).}
+\caption{Best hyperparameters and inference performance per environment and algorithm.}
 \label{tab:best}
 \end{table}
+
 
 \section{Discussion}
 \subsection{Advantages and disadvantages on our missions}
