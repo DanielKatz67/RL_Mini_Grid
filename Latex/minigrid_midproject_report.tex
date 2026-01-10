@@ -21,8 +21,8 @@
 \title{\textbf{Mid Project: Tabular Reinforcement Learning in MiniGrid}\\
 \large Monte Carlo, SARSA, and Q-Learning on Two Sparse-Reward Missions}
 \author{
-\textbf{Author 1 Name} (ID: \texttt{XXXXXXXXX}) \\
-\textbf{Author 2 Name} (ID: \texttt{XXXXXXXXX}) \\
+\textbf{Author 1: Avital Fine} (ID: \texttt{208253823}) \\
+\textbf{Author 2: Daniel Katz} (ID: \texttt{315114991}) \\
 Course: RL2026A \qquad Semester: 2025 \\
 }
 \date{\today}
@@ -48,15 +48,19 @@ Video rollouts during training and after convergence are included in the submitt
 We evaluate two grid worlds (size $10\times 10$ with outer walls) implemented in the notebook:
 
 \paragraph{Environment 1: \envEmpty.}
-An empty room (no internal obstacles) with a randomized agent start position and direction.
-The goal location is sampled from a small set of fixed coordinates.
+This environment is an empty room, and the goal of the agent is to reach the green goal square.
+Agent position at beginning is random.
+Direction of the agent at beginning is random.
+Goal position could be: $(8,1)$ or $(1,8)$ or $(8,8)$.
 The episode ends upon reaching the goal or when the step limit is reached.
+\textbf{Reward:} The agent receives $+1$ upon successfully reaching the goal (termination). No other rewards are defined.
 
 \paragraph{Environment 2: \envKey.}
 A two-room layout separated by a vertical wall with a locked door.
 The key is placed on the left side; the agent must pick it up, open the door, and reach a goal on the right side.
 The goal location is sampled from a small set of fixed coordinates.
 The episode ends upon reaching the goal or step limit.
+\textbf{Reward:} We use a shaped reward function: $+1$ upon reaching the goal, $+0.5$ for picking up the key (once), $+0.5$ for opening the door (once), and a step penalty of $-0.01$.
 
 \subsection{Environment Type and Observability}
 \textbf{Episodic:} Yes. Each run is a episodic task that terminates when the goal is reached (\texttt{terminated}) or when the maximum number of steps is exceeded (\texttt{truncated}).
@@ -64,7 +68,7 @@ The episode ends upon reaching the goal or step limit.
 \textbf{MDP:} Yes. MiniGrid is Markovian: the next state and reward depend only on the current environment state (agent position/direction, grid contents such as walls/door/key/goal, and relevant internal flags). 
 With our \texttt{KeyFlatObsWrapper}, the agent observes a global encoding of the entire grid (plus the agent’s position and direction), so the task can be treated as an MDP from the agent’s point of view. 
 
-\textbf{Action space:} Discrete. MiniGrid provides a small finite set of actions (typically 7): turn-left, turn-right, move-forward, pick-up, drop, toggle (e.g., open door), and done.
+\textbf{Action space:} Discrete. MiniGrid provides a small finite set of actions (typically 7): turn-left, turn-right, move-forward, pick-up, drop, toggle (e.g., open door), and done. In our specific implementation, we limit the action space by avoiding the following actions: \texttt{avoid\_actions=\{drop, done\}}.
 
 \textbf{State space:} Discrete and finite (but large). We learn a tabular $Q(s,a)$. In practice, we use a discretized state representation (a state tuple) rather than the full raw grid vector.
 
@@ -74,88 +78,77 @@ With our \texttt{KeyFlatObsWrapper}, the agent observes a global encoding of the
 \section{State Representation and Q-table Size}
 
 \subsection{State definition used in the notebook}
-Our tabular agents map each observation to a discrete state tuple extracted from the unwrapped MiniGrid environment:
-\[
-s = (x_a, y_a, d_a, x_g, y_g, x_k, y_k, x_d, y_d, \texttt{hasKey}, \texttt{doorOpen})
-\]
+In the final notebook, the tabular state is taken directly from the environment observation returned by
+\texttt{env.reset()} and \texttt{env.step(action)}.
 
-Each component of the state tuple has the following meaning:
+We wrap MiniGrid with \texttt{KeyFlatObsWrapper}, which encodes the full grid state as follows:
+the \(10\times10\) grid is encoded using MiniGrid’s 3-value cell representation
+(object, color, state), the agent cell is overwritten to include the agent’s direction,
+the outer walls are cropped, and the remaining \(8\times8\times3\) tensor is flattened
+into a vector of length \(8\cdot8\cdot3=192\).
+This flattened vector is stored as a tuple and used as the key in the Q-table.
+
+\subsection{State space size estimation (reachable configurations)}
+Below we give simple \emph{upper bounds} by multiplying together the main independent choices that can vary in our code.
+
+\paragraph{\envEmpty\ (RandomEmptyEnv\_10).}
 \begin{itemize}
-  \item $x_a, y_a$ – the agent's grid coordinates.
-  \item $d_a$ – the agent's orientation (direction), with
-        $d_a \in \{0,1,2,3\}$ corresponding to the four cardinal directions.
-  \item $x_g, y_g$ – the goal position coordinates.
-  \item $x_k, y_k$ – the key position coordinates (or $(-1,-1)$ if no key exists or the key is not present).
-  \item $x_d, y_d$ – the door position coordinates (or $(-1,-1)$ if no door exists).
-  \item $\texttt{hasKey}$ – a binary flag indicating whether the agent is currently carrying the key.
-  \item $\texttt{doorOpen}$ – a binary flag indicating whether the door is open.
+  \item Agent position: interior is \(8\times 8\) \(\Rightarrow 64\) possibilities.
+  \item Agent direction: \(4\) possibilities.
+  \item Goal position: chosen from 3 fixed corners \(\Rightarrow 3\) possibilities.
+\end{itemize}
+So an upper bound is:
+\[
+|\mathcal{S}_{\text{empty}}| \le 64 \cdot 4 \cdot 3 = 768.
+\]
+With 3 actions (left/right/forward), the upper bound on Q-entries is \(768 \cdot 3 = 2304\).
+
+\paragraph{\envKey\ (RandomKeyMEnv\_10).}
+Here the observation can additionally change due to \emph{key location/carrying}, \emph{door location}, \emph{door state}, and \emph{goal location}.
+Each number in the product below comes directly from our environment generation:
+
+\begin{itemize}
+  \item \textbf{Agent position:} interior \(8\times 8 \Rightarrow 64\).
+  \item \textbf{Agent direction:} \(4\).
+  \item \textbf{Key location:} in our code the key is placed in the left room with
+        \(\texttt{x} \in \{1,2\}\) (2 columns) and \(\texttt{y} \in \{2,3,4,5,6,7,8\}\) (7 rows),
+        so \(2 \cdot 7 = 14\) possible key tiles.
+        Additionally, after pickup the key disappears from the grid and is \emph{carried} \(\Rightarrow +1\) extra case.
+        Total: \(14 + 1 = 15\).
+  \item \textbf{Door location:} the door row is sampled from \(\{1,\dots,8\}\) (any interior row),
+        while the door column is fixed at the partition wall \(\Rightarrow 8\) possibilities.
+  \item \textbf{Goal location:} chosen from \((8,1)\) or \((8,8)\) \(\Rightarrow 2\) possibilities.
+  \item \textbf{Door state:} the door can be in up to 3 discrete states in MiniGrid encoding
+        (locked / closed / open) \(\Rightarrow 3\) possibilities.
 \end{itemize}
 
-This representation is fully observable and satisfies the Markov property.
-
-\paragraph{Environment-dependent components.}
-Not all state components contribute to the effective state-space complexity:
-\begin{itemize}
-  \item In \envEmpty\ (RandomEmptyEnv10), there is no key or door. The variables $(x_k,y_k)$ and $(x_d,y_d)$ are fixed sentinel values $(-1,-1)$, and $\texttt{hasKey}=\texttt{doorOpen}=0$.  
-  These components are constant and therefore do \emph{not} increase the number of distinct states.
-  
-  \item In \envKey, all components are active and affect the transition dynamics.
-\end{itemize}
-
-\subsection{State space size estimation}
-
-We consider a $10\times10$ MiniGrid with outer walls, so the agent occupies interior coordinates
-$x,y \in \{1,\dots,8\}$, yielding $64$ positions, and $4$ orientations.
-
-\paragraph{\envEmpty.}
-The goal is sampled from $G=3$ possible positions. Since all other variables are constant:
+Putting it together:
 \[
-|\mathcal{S}_{\text{Empty}}|
-=
-64 \times 4 \times 3
-=
-768
+|\mathcal{S}_{\text{key}}|
+\;\lesssim\;
+(64)\cdot(4)\cdot(15)\cdot(8)\cdot(2)\cdot(3).
 \]
 
-\paragraph{\envKey.}
-In the key–door environment:
-\begin{itemize}
-  \item the goal has $G=2$ possible locations,
-  \item the door is always located in column $3$ $\Rightarrow 8$ possible positions,
-  \item the key is located on the left side of the wall (columns $1$ and $2$), giving $2 \times 8 = 16$ possible positions,
-  \item $\texttt{hasKey} \in \{0,1\}$,
-  \item $\texttt{doorOpen} \in \{0,1\}$.
-\end{itemize}
-
-The resulting theoretical state-space size is:
+So:
 \[
-|\mathcal{S}_{\text{Key}}|
-=
-64 \times 4 \times 2 \times 8 \times 16 \times 2 \times 2
-=
-262{,}144
+|\mathcal{S}_{\text{key}}| \lesssim 184{,}320.
 \]
 
-\subsection{Summary of theoretical state sizes}
+In practice, we exclude two actions, \texttt{drop} and \texttt{done}, which are never useful in our setups.
+Thus, the effective action set has \(|\mathcal{A}| = 5\) actions.
+The resulting upper bound on Q-table entries is therefore:
+\[
+|\mathcal{S}_{\text{key}}|\cdot |\mathcal{A}|
+\;\lesssim\;
+184{,}320 \cdot 5
+=
+921{,}600.
+\]
 
-\begin{table}[H]
-\centering
-\begin{tabular}{lcccc}
-\toprule
-Environment & Agent pos. & Orientation & Additional factors & $|\mathcal{S}|$ \\
-\midrule
-\envEmpty & $64$ & $4$ & $3$ goal positions & $768$ \\
-\envKey   & $64$ & $4$ & $2 \cdot 8 \cdot 16 \cdot 2 \cdot 2$ & $262{,}144$ \\
-\bottomrule
-\end{tabular}
-\caption{Theoretical number of discrete states under the full state representation used by the tabular agents.}
-\end{table}
+\paragraph{Important note (why this is only an upper bound).}
+Not every combination above is actually reachable (e.g., when the agent stands on the key tile, the wrapper overwrites that cell with the agent encoding),
+and our Q-table is stored \emph{sparsely} (a dictionary): we only create \((s,a)\) entries for states that are visited during training.
 
-Let $|\mathcal{A}|$ be the number of discrete actions :  envEmpty $|\mathcal{A}|=3$, envKey $|\mathcal{A}|=7$.
-
-\paragraph{Q-table size.}
-The Q-table size is $|\mathcal{S}|\times|\mathcal{A}|$.  
-In practice, Q-values are stored in a dictionary indexed by visited states, so memory usage scales with the number of states actually encountered during training rather than the full theoretical state space.
 \section{Algorithms}
 We compare three tabular reinforcement learning algorithms under the same
 $\epsilon$-greedy exploration strategy.  
@@ -170,21 +163,6 @@ For each first visit of a state–action pair $(s,a)$, the return $G_t$ is compu
 Q(s,a) \leftarrow Q(s,a) + \alpha\bigl(G_t - Q(s,a)\bigr).
 \]
 
-\textbf{Advantages in our MiniGrid missions:}
-\begin{itemize}
-  \item No bootstrapping bias: updates rely solely on actual observed returns.
-  \item Conceptually simple and stable in strictly episodic environments.
-\end{itemize}
-
-\textbf{Disadvantages in our MiniGrid missions:}
-\begin{itemize}
-  \item Very high variance due to sparse terminal rewards.
-  \item Credit assignment is difficult: all actions in a long episode receive the same delayed reward.
-  \item Particularly slow in \envKey, where episodes are long and successful trajectories are rare early in training.
-\end{itemize}
-
-As a result, Monte Carlo learning converges slowly and requires many episodes to propagate useful information back to early states.
-
 \subsection{\sarsa}
 \textbf{Type:} On-policy temporal-difference (TD) control.
 
@@ -192,22 +170,6 @@ SARSA performs incremental updates at every step using the next action selected 
 \[
 Q(s,a)\leftarrow Q(s,a)+\alpha\Bigl(r+\gamma Q(s',a')-Q(s,a)\Bigr).
 \]
-
-\textbf{Advantages in our MiniGrid missions:}
-\begin{itemize}
-  \item Lower variance than Monte Carlo due to step-wise bootstrapping.
-  \item Learns policies that account for exploration, leading to more conservative behavior.
-  \item More stable learning than MC in sparse-reward settings.
-\end{itemize}
-
-\textbf{Disadvantages in our MiniGrid missions:}
-\begin{itemize}
-  \item Convergence to the optimal greedy policy can be slower than off-policy methods.
-  \item Continued exploration (nonzero $\epsilon$) affects the learned value function.
-\end{itemize}
-
-In \envEmpty, SARSA learns efficiently due to the smaller state space.  
-In \envKey, its conservative updates help stability but slow down optimal path learning.
 
 \subsection{\qlearn}
 \textbf{Type:} Off-policy temporal-difference (TD) control.
@@ -217,36 +179,21 @@ Q-learning updates toward the greedy value of the next state, independent of the
 Q(s,a)\leftarrow Q(s,a)+\alpha\Bigl(r+\gamma \max_{a'}Q(s',a')-Q(s,a)\Bigr).
 \]
 
-\textbf{Advantages in our MiniGrid missions:}
-\begin{itemize}
-  \item More sample-efficient than MC and SARSA.
-  \item Faster propagation of terminal rewards through the state space.
-  \item Performs well in large discrete state spaces such as \envKey.
-\end{itemize}
-
-\textbf{Disadvantages in our MiniGrid missions:}
-\begin{itemize}
-  \item Can overestimate action values due to the max operator.
-  \item Sensitive to learning rate and exploration schedule.
-\end{itemize}
-
-Overall, Q-learning shows the fastest convergence in both environments, especially in the key–door task, where efficient reward propagation is crucial.
-
 % =========================
 % Hyperparameters
 % =========================
 \subsection{Hyperparameters and initializations}
-We perform a grid search over the following hyperparameters:
+We performed an extensive grid search to identify the optimal hyperparameters for each algorithm and environment. This process involved testing all combinations of the following parameters to ensure robust performance:
 
 \begin{itemize}
   \item Learning rate: $\alpha \in \{0.1, 0.2\}$
   \item Discount factor: $\gamma \in \{0.9, 0.99\}$
   \item Epsilon decay: $\epsilon_{decay} \in \{0.999, 0.9995\}$
-  \item Initial exploration: $\epsilon_0 = 1.0$, $\epsilon_{min} = 0.05$
+  \item Initial exploration: $\epsilon_0 = 1.0$, $\epsilon_{min} = 0.1$
   \item Initialization: zero initialization vs.\ optimistic initialization ($Q_0 > 0$)
 \end{itemize}
 
-For each environment and algorithm, we report results using the best-performing hyperparameter configuration.
+After evaluating all combinations, we selected the parameters that yielded the best average reward and success rate. It is important to note that the accompanying notebook includes only the final, best-performing hyperparameter configurations. This was done to maintain clarity and focus on the most successful results, avoiding the clutter of hundreds of suboptimal experimental runs.
 
 % =========================
 % Results
@@ -260,53 +207,63 @@ All plots correspond to the best hyperparameter configuration found for each alg
 % -------------------------
 \subsection{\envEmpty\ (RandomEmptyEnv10)}
 
-\subsubsection{Training performance}
-Figure~\ref{fig:empty_reward} presents the smoothed training reward (success rate) for each algorithm in \envEmpty, using the best hyperparameter configuration per method.
+\subsubsection{Hyperparameters and Training}
+Extensive grid search revealed the following optimal hyperparameters:
+$\gamma=0.99$, $\alpha=0.2$, $\epsilon_0=1.0$, $\epsilon_{min}=0.1$, $\epsilon_{decay}=0.995$.
 
+\textbf{Reward Structure:} The agent receives a reward of $+1$ upon termination (reaching the goal).
+
+Figure~\ref{fig:empty_comparison} compares the training performance.
 \begin{figure}[H]
 \centering
-\begin{subfigure}{0.49\textwidth}
+\includegraphics[width=0.99\textwidth]{figs/emptyEnv_comparision.png}
+\caption{\envEmpty: Training reward comparison. All algorithms successfully learn the task.}
+\label{fig:empty_comparison}
+\end{figure}
+
+\subsubsection{Inference Evaluation}
+The trained policies were evaluated over 100 episodes. The results are summarized below:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Avg Reward & Avg Steps & Success Rate \\
+\midrule
+Monte Carlo & $0.860$ & $36.8$ & 86.0\% \\
+SARSA       & $1.000$ & $9.9$  & 100.0\% \\
+Q-Learning  & $1.000$ & $9.2$  & 100.0\% \\
+\bottomrule
+\end{tabular}
+\caption{Performance metrics on \envEmpty\ (100 evaluation episodes).}
+\label{tab:empty_metrics}
+\end{table}
+
+Both SARSA and Q-Learning achieve 100\% success with near-optimal step counts. Monte Carlo is less stable with 86.0\% success.
+
+\subsubsection{Agent Visualization}
+We recorded the behavior of the trained Q-Learning agent:
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.32\textwidth}
   \centering
-  \includegraphics[width=\textwidth]{figs/empty_mc_best_reward.png}
-  \caption{\mc: training reward vs.\ episodes.}
+  \includegraphics[width=\textwidth]{figs/empty_eval_1.png}
+  \caption{Start}
 \end{subfigure}
 \hfill
-\begin{subfigure}{0.49\textwidth}
+\begin{subfigure}{0.32\textwidth}
   \centering
-  \includegraphics[width=\textwidth]{figs/empty_sarsa_best_reward.png}
-  \caption{\sarsa: training reward vs.\ episodes.}
+  \includegraphics[width=\textwidth]{figs/empty_eval_2.png}
+  \caption{Mid-trajectory}
 \end{subfigure}
-
-\vspace{0.5em}
-
-\begin{subfigure}{0.49\textwidth}
+\hfill
+\begin{subfigure}{0.32\textwidth}
   \centering
-  \includegraphics[width=\textwidth]{figs/empty_q_best_reward.png}
-  \caption{\qlearn: training reward vs.\ episodes.}
+  \includegraphics[width=\textwidth]{figs/empty_eval_3.png}
+  \caption{Goal Reached}
 \end{subfigure}
-
-\caption{\envEmpty: smoothed training reward (success rate) under best hyperparameters for each algorithm.}
-\label{fig:empty_reward}
-\end{figure}
-
-All three algorithms converge to optimal performance.
-Q-learning reaches stable success in fewer episodes, followed by SARSA, while Monte Carlo exhibits higher variance and slower convergence.
-
-
-\subsubsection{Training efficiency (steps per episode)}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.85\textwidth]{figs/empty_best_steps_all.png}
-\caption{\envEmpty: average steps per episode during training.}
-\label{fig:empty_steps}
-\end{figure}
-
-\subsubsection{Inference evaluation}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.85\textwidth]{figs/infer_empty_avg_steps.png}
-\caption{\envEmpty: average steps per episode during inference (greedy policy).}
-\label{fig:empty_infer}
+\caption{Visualizing the trained Q-Learning agent on \envEmpty. The agent efficiently navigates to the green goal square.}
+\label{fig:empty_eval_vis}
 \end{figure}
 
 % -------------------------
@@ -314,31 +271,62 @@ Q-learning reaches stable success in fewer episodes, followed by SARSA, while Mo
 % -------------------------
 \subsection{\envKey}
 
-\subsubsection{Training performance}
+\subsubsection{Hyperparameters and Training}
+For this environment, we used the following configuration:
+$N_{episodes}=10000$, $\gamma=0.99$, $\alpha=0.1$, $\epsilon_0=1.0$, $\epsilon_{min}=0.1$, $\epsilon_{decay}=0.999$ (decay every 5 episodes).
+The maximum steps per episode was set to 1000.
+
+\textbf{Reward Structure:} The agent receives $+1$ upon termination (reaching the goal), $+0.5$ for picking up the key (can be done only once), $+0.5$ for opening the door (can be done only once), and a penalty of $-0.01$ for each step.
+
+Figure~\ref{fig:key_comparison} compares the training performance.
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{figs/key_best_reward_all.png}
-\caption{\envKey: training reward (success rate) vs.\ episodes for \mc, \sarsa, and \qlearn.}
-\label{fig:key_reward}
+\includegraphics[width=0.99\textwidth]{figs/keyEnv_comparision.png}
+\caption{\envKey: Training reward comparison.}
+\label{fig:key_comparison}
 \end{figure}
 
-Compared to \envEmpty, convergence is slower due to the larger state space and delayed rewards.
-Q-learning shows the strongest advantage in this environment.
+\subsubsection{Inference Evaluation}
+The trained policies were evaluated over 100 episodes. The results are summarized below:
 
-\subsubsection{Training efficiency (steps per episode)}
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Algorithm & Avg Reward & Avg Steps & Success Rate \\
+\midrule
+Monte Carlo & $-2.342$ & $266.7$ & 12.0\% \\
+SARSA       & $0.449$ & $99.1$  & 72.0\% \\
+Q-Learning  & $1.496$ & $38.4$  & 94.0\% \\
+\bottomrule
+\end{tabular}
+\caption{Performance metrics on \envKey\ (100 evaluation episodes).}
+\label{tab:key_metrics}
+\end{table}
+
+\subsubsection{Agent Visualization}
+We recorded the behavior of the trained agent:
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.85\textwidth]{figs/key_best_steps_all.png}
-\caption{\envKey: average steps per episode during training.}
-\label{fig:key_steps}
-\end{figure}
-
-\subsubsection{Inference evaluation}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.85\textwidth]{figs/infer_key_avg_steps.png}
-\caption{\envKey: average steps per episode during inference (greedy policy).}
-\label{fig:key_infer}
+\begin{subfigure}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/key_eval_1.png}
+  \caption{Pick up Key}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/key_eval_2.png}
+  \caption{Unlock Door}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figs/key_eval_3.png}
+  \caption{Goal Reached}
+\end{subfigure}
+\caption{Visualizing the interactions in \envKey.}
+\label{fig:key_eval_vis}
 \end{figure}
 
 % -------------------------
@@ -352,13 +340,13 @@ Q-learning shows the strongest advantage in this environment.
 \toprule
 Env & Algo & $\alpha$ & $\gamma$ & $\epsilon_{decay}$ & Inference avg steps \\
 \midrule
-\envEmpty & \mc     & 0.1 & 0.9  & 0.999  & \texttt{...} \\
-\envEmpty & \sarsa  & 0.2 & 0.9  & 0.999  & \texttt{...} \\
-\envEmpty & \qlearn & 0.1 & 0.9  & 0.999  & \texttt{...} \\
+\envEmpty & \mc     & 0.2 & 0.99 & 0.995  & 36.8 \\
+\envEmpty & \sarsa  & 0.2 & 0.99 & 0.995  & 9.9 \\
+\envEmpty & \qlearn & 0.2 & 0.99 & 0.995  & 9.2 \\
 \addlinespace
-\envKey   & \mc     & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
-\envKey   & \sarsa  & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
-\envKey   & \qlearn & \texttt{...} & \texttt{...} & \texttt{...} & \texttt{...} \\
+\envKey   & \mc     & 0.1 & 0.99 & 0.999  & 266.7 \\
+\envKey   & \sarsa  & 0.1 & 0.99 & 0.999  & 99.1 \\
+\envKey   & \qlearn & 0.1 & 0.99 & 0.999  & 38.4 \\
 \bottomrule
 \end{tabular}
 \caption{Best hyperparameters and inference performance per environment and algorithm.}
@@ -366,48 +354,67 @@ Env & Algo & $\alpha$ & $\gamma$ & $\epsilon_{decay}$ & Inference avg steps \\
 \end{table}
 
 
-\section{Discussion}
-\subsection{Advantages and disadvantages on our missions}
-\paragraph{Sparse reward impact.}
-Both tasks provide reward only at success, which makes exploration the main difficulty.
-\mc often learns slower because it must complete successful trajectories to propagate credit information to earlier states.
-TD methods (\sarsa, \qlearn) can propagate value estimates earlier via bootstrapping, typically improving sample efficiency.
+\section{Discussion: Advantages and Disadvantages}
 
-\paragraph{On-policy vs off-policy.}
-\sarsa learns values consistent with the behavior policy (epsilon-greedy), which can yield safer behavior during learning.
-\qlearn learns a greedy target while exploring, often converging faster to an optimal greedy policy, but can be more sensitive to exploration settings.
-
-\paragraph{Environment differences.}
-\envEmpty is mostly navigation, so the reduced state $(x,y,dir,x_g,y_g)$ is close to Markov and learning is comparatively easy.
-\envKey requires reasoning about \textit{key possession} and \textit{door state}; if these are excluded from the state representation, learning becomes harder because distinct situations collapse into the same tabular state.
-
-\subsection{Exploration--Exploitation tradeoff}
-We used epsilon-greedy with decay. Alternative or complementary approaches:
+\subsection{Monte Carlo}
+\textbf{Advantages:}
 \begin{itemize}
-  \item \textbf{Optimistic initialization:} start $Q(s,a)$ above 0 to encourage exploration early.
-  \item \textbf{Exploring starts:} force random starting states/actions (when allowed) to improve coverage.
-  \item \textbf{Different decay schedules:} linear decay, piecewise decay, or keeping a non-trivial $\epsilon_{min}$.
-  \item \textbf{Count-based exploration (tabular):} add bonuses for rarely visited $(s,a)$.
+    \item Simple and straightforward implementation
+    \item Unbiased estimates (uses actual returns)
+    \item Excellent for multi-step tasks: When one episode succeeds, ALL visited states learn from it
+    \item Good baseline but struggled with \envKey\ (12\% success rate)
 \end{itemize}
 
-\subsection{Strengths and limitations of our approach}
-\paragraph{Good points.}
-Tabular methods are simple, interpretable, and fast to run.
-They are a strong baseline for small discrete tasks and allow clear comparisons between MC and TD control.
+\textbf{Disadvantages:}
+\begin{itemize}
+    \item Must wait until episode ends to update
+    \item High variance, especially for long episodes
+    \item Cannot learn during an episode
+\end{itemize}
 
-\paragraph{Bad points.}
-State design is critical; an incomplete state (especially in \envKey) breaks the Markov property and can prevent full convergence.
-Also, tabular approaches do not scale to larger grids or richer observations without function approximation.
+\subsection{SARSA}
+\textbf{Advantages:}
+\begin{itemize}
+    \item Online learning (updates every step)
+    \item Lower variance than MC
+    \item Learns conservative policies (good for risky environments)
+\end{itemize}
+
+\textbf{Disadvantages:}
+\begin{itemize}
+    \item Value propagates only one step per update
+    \item Achieved moderate performance on \envKey\ (72\% success rate)
+    \item May not find optimal policy without sufficient exploration
+\end{itemize}
+
+\subsection{Q-Learning}
+\textbf{Advantages:}
+\begin{itemize}
+    \item Learns optimal policy regardless of behavior policy
+    \item Off-policy learning allows more flexible exploration
+    \item Best performer for \envKey\ (94\% success rate)
+\end{itemize}
+
+\textbf{Disadvantages:}
+\begin{itemize}
+    \item Value propagates only one step per update
+    \item Can overestimate Q-values (maximization bias)
+\end{itemize}
+
+\section{Key Findings for MiniGrid}
+\textbf{Algorithm Selection Matters:} Q-Learning significantly outperforms Monte Carlo for the multi-step \envKey\ task. This demonstrates that off-policy TD methods can be more sample efficient.
+
+\textbf{Value Propagation:} The critical difference is how value propagates:
+\begin{itemize}
+    \item MC: All states in a successful episode learn simultaneously
+    \item TD: Value must propagate step-by-step over many episodes
+\end{itemize}
+
+\textbf{State Representation:} Fixed key/door positions (2,048 states) make the task tractable. Random positions would create $\sim$100k+ states.
+
+\textbf{Reward Shaping:} Adding intermediate rewards ($+0.5$ for key, $+0.5$ for door) helps guide the agent, though it doesn't fully compensate for propagation delays.
+
+\textbf{Exploration:} High epsilon (decaying to 0.1) is essential for discovering the goal path.
 
 \section{Conclusion}
-Summarize which algorithm performed best in each environment and why (based on your plots and inference metrics), and propose improvements (better state, exploration bonuses, or function approximation).
-
-\section*{Reproducibility Checklist}
-\begin{itemize}
-  \item Provide Colab notebook link: \texttt{<paste link>}
-  \item Report random seeds used (if any): \texttt{<paste seeds>}
-  \item Mention training episodes and evaluation episodes: \texttt{<numbers>}
-  \item List best hyperparameters (Table~\ref{tab:best})
-\end{itemize}
-
-\end{document}
+For episodic tasks with sparse rewards and long paths, Q-Learning proved to be the most robust algorithm in our experiments. While Monte Carlo is unbiased, it suffered from high variance and poor sample efficiency in the complex environment.

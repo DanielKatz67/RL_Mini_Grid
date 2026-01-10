@@ -8,51 +8,44 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Environment Type and Observability}{1}{subsection.1.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {2}State Representation and Q-table Size}{2}{section.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}State definition used in the notebook}{2}{subsection.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Environment-dependent components.}{2}{section*.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}State space size estimation}{2}{subsection.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{\texttt  {RandomEmptyEnv\_10}.}{2}{section*.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{\texttt  {RandomKeyMEnv\_10}.}{3}{section*.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Summary of theoretical state sizes}{3}{subsection.2.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Theoretical number of discrete states under the full state representation used by the tabular agents.}}{3}{table.caption.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Q-table size.}{3}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}State space size estimation (reachable configurations)}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\texttt  {RandomEmptyEnv\_10}\ (RandomEmptyEnv\_10).}{2}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{\texttt  {RandomKeyMEnv\_10}\ (RandomKeyMEnv\_10).}{2}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Important note (why this is only an upper bound).}{3}{section*.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3}Algorithms}{3}{section.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}\textsc  {First-Visit Monte Carlo}}{3}{subsection.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}\textsc  {SARSA(0)}}{4}{subsection.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}\textsc  {Q-Learning}}{4}{subsection.3.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Hyperparameters and initializations}{5}{subsection.3.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4}Results}{5}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}\texttt  {RandomEmptyEnv\_10}\ (RandomEmptyEnv10)}{5}{subsection.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}Training performance}{5}{subsubsection.4.1.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \texttt  {RandomEmptyEnv\_10}: smoothed training reward (success rate) under best hyperparameters for each algorithm.}}{5}{figure.caption.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}\textsc  {SARSA(0)}}{3}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}\textsc  {Q-Learning}}{3}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Hyperparameters and initializations}{4}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Results}{4}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}\texttt  {RandomEmptyEnv\_10}\ (RandomEmptyEnv10)}{4}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}Hyperparameters and Training}{4}{subsubsection.4.1.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \texttt  {RandomEmptyEnv\_10}: Training reward comparison. All algorithms successfully learn the task.}}{4}{figure.caption.6}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:empty_reward}{{1}{5}{\envEmpty : smoothed training reward (success rate) under best hyperparameters for each algorithm}{figure.caption.8}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}Training efficiency (steps per episode)}{6}{subsubsection.4.1.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \texttt  {RandomEmptyEnv\_10}: average steps per episode during training.}}{6}{figure.caption.9}\protected@file@percent }
-\newlabel{fig:empty_steps}{{2}{6}{\envEmpty : average steps per episode during training}{figure.caption.9}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.3}Inference evaluation}{6}{subsubsection.4.1.3}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces \texttt  {RandomEmptyEnv\_10}: average steps per episode during inference (greedy policy).}}{6}{figure.caption.10}\protected@file@percent }
-\newlabel{fig:empty_infer}{{3}{6}{\envEmpty : average steps per episode during inference (greedy policy)}{figure.caption.10}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}\texttt  {RandomKeyMEnv\_10}}{7}{subsection.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Training performance}{7}{subsubsection.4.2.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \texttt  {RandomKeyMEnv\_10}: training reward (success rate) vs.\ episodes for \textsc  {First-Visit Monte Carlo}, \textsc  {SARSA(0)}, and \textsc  {Q-Learning}.}}{7}{figure.caption.11}\protected@file@percent }
-\newlabel{fig:key_reward}{{4}{7}{\envKey : training reward (success rate) vs.\ episodes for \mc , \sarsa , and \qlearn }{figure.caption.11}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Training efficiency (steps per episode)}{8}{subsubsection.4.2.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces \texttt  {RandomKeyMEnv\_10}: average steps per episode during training.}}{8}{figure.caption.12}\protected@file@percent }
-\newlabel{fig:key_steps}{{5}{8}{\envKey : average steps per episode during training}{figure.caption.12}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.3}Inference evaluation}{9}{subsubsection.4.2.3}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces \texttt  {RandomKeyMEnv\_10}: average steps per episode during inference (greedy policy).}}{9}{figure.caption.13}\protected@file@percent }
-\newlabel{fig:key_infer}{{6}{9}{\envKey : average steps per episode during inference (greedy policy)}{figure.caption.13}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Best hyperparameter summary}{9}{subsection.4.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Best hyperparameters and inference performance per environment and algorithm.}}{9}{table.caption.14}\protected@file@percent }
-\newlabel{tab:best}{{2}{9}{Best hyperparameters and inference performance per environment and algorithm}{table.caption.14}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion}{10}{section.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Advantages and disadvantages on our missions}{10}{subsection.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Sparse reward impact.}{10}{section*.15}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{On-policy vs off-policy.}{10}{section*.16}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Environment differences.}{10}{section*.17}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Exploration--Exploitation tradeoff}{10}{subsection.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Strengths and limitations of our approach}{10}{subsection.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Good points.}{10}{section*.18}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Bad points.}{10}{section*.19}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{10}{section.6}\protected@file@percent }
-\gdef \@abspage@last{11}
+\newlabel{fig:empty_comparison}{{1}{4}{\envEmpty : Training reward comparison. All algorithms successfully learn the task}{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}Inference Evaluation}{5}{subsubsection.4.1.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Performance metrics on \texttt  {RandomEmptyEnv\_10}\ (100 evaluation episodes).}}{5}{table.caption.7}\protected@file@percent }
+\newlabel{tab:empty_metrics}{{1}{5}{Performance metrics on \envEmpty \ (100 evaluation episodes)}{table.caption.7}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.3}Agent Visualization}{5}{subsubsection.4.1.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Visualizing the trained Q-Learning agent on \texttt  {RandomEmptyEnv\_10}. The agent efficiently navigates to the green goal square.}}{5}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:empty_eval_vis}{{2}{5}{Visualizing the trained Q-Learning agent on \envEmpty . The agent efficiently navigates to the green goal square}{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}\texttt  {RandomKeyMEnv\_10}}{5}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Hyperparameters and Training}{5}{subsubsection.4.2.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces \texttt  {RandomKeyMEnv\_10}: Training reward comparison.}}{6}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:key_comparison}{{3}{6}{\envKey : Training reward comparison}{figure.caption.9}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Inference Evaluation}{6}{subsubsection.4.2.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Performance metrics on \texttt  {RandomKeyMEnv\_10}\ (100 evaluation episodes).}}{6}{table.caption.10}\protected@file@percent }
+\newlabel{tab:key_metrics}{{2}{6}{Performance metrics on \envKey \ (100 evaluation episodes)}{table.caption.10}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.3}Agent Visualization}{6}{subsubsection.4.2.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Visualizing the interactions in \texttt  {RandomKeyMEnv\_10}.}}{6}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:key_eval_vis}{{4}{6}{Visualizing the interactions in \envKey }{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Best hyperparameter summary}{7}{subsection.4.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Best hyperparameters and inference performance per environment and algorithm.}}{7}{table.caption.12}\protected@file@percent }
+\newlabel{tab:best}{{3}{7}{Best hyperparameters and inference performance per environment and algorithm}{table.caption.12}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Discussion: Advantages and Disadvantages}{7}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Monte Carlo}{7}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}SARSA}{7}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Q-Learning}{8}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Key Findings for MiniGrid}{8}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusion}{8}{section.7}\protected@file@percent }
+\gdef \@abspage@last{8}
