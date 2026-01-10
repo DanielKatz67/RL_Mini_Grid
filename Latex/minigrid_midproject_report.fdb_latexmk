@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1768068430.8644 "minigrid_midproject_report.tex" "minigrid_midproject_report.pdf" "minigrid_midproject_report" 1768068431.93519 0
+["pdflatex"] 1768070609.76498 "minigrid_midproject_report.tex" "minigrid_midproject_report.pdf" "minigrid_midproject_report" 1768070610.85381 0
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/jknappen/ec/tcrm1095.tfm" 1136768653 1536 02c06700a42be0f5a28664c7273f82e7 ""
@@ -74,6 +74,7 @@
   "/usr/local/texlive/2025/texmf-dist/tex/latex/base/article.cls" 1738182759 20144 63d8bacaf52e5abf4db3bc322373e1d4 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/base/atbegshi-ltx.sty" 1738182759 2963 d8ec5a1b4e0a106c5c737900202763e4 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/base/atveryend-ltx.sty" 1738182759 2378 14b657ee5031da98cf91648f19642694 ""
+  "/usr/local/texlive/2025/texmf-dist/tex/latex/base/omscmr.fd" 1738182759 2469 c75f72b1dc17277decdd842fa4a321a8 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/base/size11.clo" 1738182759 8464 e73911cdcc738e82d6adccd28e654bb1 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/booktabs/booktabs.sty" 1579038678 6078 f1cb470c9199e7110a27851508ed7a5c ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/caption/caption.sty" 1696191071 56128 c2ccf1a29d78c33bc553880402e4fb9a ""
@@ -121,9 +122,9 @@
   "figs/key_eval_1.png" 1768066206.50123 25023 a807c0964a0c983efacdffd1f52eda0f ""
   "figs/key_eval_2.png" 1768066246.50344 22686 688f2da62a285fcf77ee54919d578384 ""
   "figs/key_eval_3.png" 1768066266.41761 23563 92568172a76eaa4e00c73e3290eaeff8 ""
-  "minigrid_midproject_report.aux" 1768068431.85393 6607 91ceecc219695c56b72b5e2f8dc1643d "pdflatex"
-  "minigrid_midproject_report.out" 1768068431.85506 4601 2999ba6de66d1d08ddfeac9c49746d56 "pdflatex"
-  "minigrid_midproject_report.tex" 1768068429.15995 18140 6acf7f4a09cd6465c5b059ca72767629 ""
+  "minigrid_midproject_report.aux" 1768070610.77137 6935 5773fd4de8619a58164178f307952103 "pdflatex"
+  "minigrid_midproject_report.out" 1768070610.77211 5220 1f0048bda0f04d88f1224e397a9f2585 "pdflatex"
+  "minigrid_midproject_report.tex" 1768070608.01425 21099 febcf5da27791b152848396a5d67dd97 ""
   (generated)
   "minigrid_midproject_report.aux"
   "minigrid_midproject_report.log"
